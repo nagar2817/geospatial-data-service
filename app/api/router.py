@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from api.routers import job
+from api.routers import job, pipeline
 
 """
 Main API Router
@@ -13,7 +13,7 @@ api_router = APIRouter(prefix="/api/v1")
 
 # Include all sub-routers
 api_router.include_router(job.router)
-# api_router.include_router(alert.router)
+api_router.include_router(pipeline.router)
 
 # Health check endpoint
 @api_router.get("/health", tags=["health"])

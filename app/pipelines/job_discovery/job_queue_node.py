@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Dict
 from uuid import UUID
 from config.celery_config import celery_app
 from database import SessionLocal, RepositoryFactory

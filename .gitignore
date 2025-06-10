@@ -1,0 +1,9 @@
+# Exclude the `env/` directory
+env/
+
+# Exclude `.env` files
+*.env
+
+# Exclude `__pycache__` directories present in any folder
+__pycache__/
+*.pyc

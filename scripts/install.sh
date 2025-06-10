@@ -1,0 +1,1 @@
+pip install "fastapi[standard]" sqlalchemy celery redis pydantic pydantic-settings python-dateutil alembic psycopg2-binary python-dotenv

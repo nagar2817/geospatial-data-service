@@ -1,0 +1,188 @@
+import logging
+from logging.config import fileConfig
+from sqlalchemy import engine_from_config, text
+from sqlalchemy import pool
+from alembic import context
+from dotenv import load_dotenv
+
+# Completely suppress the repetitive sequence detection messages
+logging.getLogger('alembic.ddl.postgresql').setLevel(logging.ERROR)
+logging.getLogger('alembic.runtime.migration').setLevel(logging.WARNING)
+
+# Load environment variables
+load_dotenv()
+
+# Import your models here
+from database.connection import Base
+from database.models import *  # Import all models
+
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
+config = context.config
+
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+# add your model's MetaData object here
+# for 'autogenerate' support
+target_metadata = Base.metadata
+# After importing models, add this debug code:
+print("DEBUG: Tables in metadata:")
+for table in target_metadata.tables:
+    print(f"  - {table}")
+    
+
+def include_object(object, name, type_, reflected, compare_to):
+    """
+    Function to include/exclude objects from autogeneration.
+    Only include tables from our target metadata.
+    """
+    # Debug - print table names for analysis
+    if type_ == "table" and name in ["job_definitions", "job_runs"]:
+        print(f"DEBUG: Table {name} is being processed")
+        in_metadata = name in [table.name for table in target_metadata.tables.values()]
+        print(f"DEBUG: Table {name} in metadata: {in_metadata}")
+
+    # Skip auto-generated sequences for SERIAL columns
+    if type_ == "table" and name.endswith('_seq'):
+        return False
+    
+    # Skip specific sequences that are automatically managed
+    auto_sequences = {
+        'attachment_metadata_attachment_metadata_id_seq',
+        'metrics_metric_id_seq',
+        'tasks_task_id_seq',
+        'notifications_notification_id_seq',
+        'units_unit_id_seq',
+        'projects_project_id_seq',
+        'input_templates_input_template_id_seq',
+        'datapoints_datapoint_id_seq',
+        'attachments_attachment_id_seq',
+        'measurements_measurement_id_seq',
+        'prompts_prompt_id_seq',
+        'task_instances_instance_id_seq',
+        'lambda_actions_task_id_seq',
+        'esg_news_flattened_article_id_seq',
+        'permissions_id_seq',
+        'documents_id_seq',
+        'knowledge_news_article_id_seq'
+    }
+    
+    if type_ == "table" and name in auto_sequences:
+        return False
+    
+    # Only include tables that are in our models
+    if type_ == "table":
+        # Exclude framework tables
+        excluded_tables = [
+            'auth_group', 'auth_group_permissions', 'auth_permission',
+            'auth_user', 'auth_user_groups', 'auth_user_user_permissions',
+            'django_admin_log', 'django_content_type', 'django_migrations',
+            'django_session', 'django_site', 'alembic_version'
+        ]
+        
+        if name in excluded_tables:
+            return False
+            
+        # Only include tables from our target metadata
+        return name in [table.name for table in target_metadata.tables.values()]
+    
+    return True
+
+def compare_type(context, inspected_column, metadata_column, inspected_type, metadata_type):
+    """
+    Compare types and return True if they're different enough to warrant a migration.
+    """
+    # Handle vector type comparison (for pg_vector extension)
+    if hasattr(inspected_type, 'python_type') and hasattr(metadata_type, 'python_type'):
+        return inspected_type.python_type != metadata_type.python_type
+    
+    # For other types, use default comparison
+    return context.impl.compare_type(inspected_column, metadata_column)
+
+def process_revision_directives(context, revision, directives):
+    """
+    Process revision directives to prevent empty migrations.
+    """
+    if getattr(directives[0], 'upgrade_ops', None) is not None:
+        # Check if there are any actual operations
+        if not directives[0].upgrade_ops.ops:
+            directives[:] = []
+        else:
+            # Check if all operations are just comments or empty
+            has_real_ops = any(
+                hasattr(op, 'table_name') or 
+                hasattr(op, 'source_table') or 
+                str(type(op).__name__) not in ['CommentOp', 'OpContainer']
+                for op in directives[0].upgrade_ops.ops
+            )
+            if not has_real_ops:
+                directives[:] = []
+
+def get_url():
+    """Get database URL from environment variables."""
+    import os
+    
+    host = os.getenv("DB_HOST", "localhost")
+    port = os.getenv("DB_PORT", "5432")
+    name = os.getenv("DB_NAME", "geodata")
+    user = os.getenv("DB_USER", "postgres")
+    password = os.getenv("DB_PASSWORD", "postgres")
+    
+    return f"postgresql://{user}:{password}@{host}:{port}/{name}"
+
+def run_migrations_offline() -> None:
+    """Run migrations in 'offline' mode."""
+    url = get_url()
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+        include_schemas=True,
+        version_table_schema="carbonleap",
+        include_object=include_object,
+        compare_type=compare_type,
+        process_revision_directives=process_revision_directives
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+def run_migrations_online() -> None:
+    """Run migrations in 'online' mode."""
+    configuration = config.get_section(config.config_ini_section)
+    configuration["sqlalchemy.url"] = get_url()
+    
+    connectable = engine_from_config(
+        configuration,
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+
+    with connectable.connect() as connection:
+        # Create schema if it doesn't exist
+        connection.execute(text("CREATE SCHEMA IF NOT EXISTS carbonleap"))
+        connection.commit()
+        
+        context.configure(
+            connection=connection, 
+            target_metadata=target_metadata,
+            include_schemas=True,
+            version_table_schema="carbonleap",
+            include_object=include_object,
+            compare_type=compare_type,
+            compare_server_default=True,
+            render_as_batch=True,
+            process_revision_directives=process_revision_directives
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()

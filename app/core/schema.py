@@ -1,6 +1,8 @@
-from typing import List, Type, Optional, Any, Dict
+from typing import List, Type, Optional, Any, Dict, ForwardRef
 from pydantic import BaseModel, Field
 from enum import Enum
+
+BaseNodeRef = ForwardRef('BaseNode')
 
 class TriggerType(str, Enum):
     API = "api"
@@ -30,13 +32,13 @@ class PipelineResult(BaseModel):
 
 class NodeConfig(BaseModel):
     """Configuration for a pipeline node"""
-    node: Type["BaseNode"]
-    connections: List[Type["BaseNode"]] = Field(default_factory=list)
+    node: Type[BaseNodeRef]
+    connections: List[Type[BaseNodeRef]] = Field(default_factory=list)
     is_router: bool = False
     description: str = ""
     
 class PipelineSchema(BaseModel):
     """Schema defining pipeline structure"""
     description: str
-    start: Type["BaseNode"]
+    start: Type[BaseNodeRef]
     nodes: List[NodeConfig]

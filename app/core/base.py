@@ -3,7 +3,7 @@ from typing import List, Optional, Type
 from uuid import uuid4
 import logging
 from datetime import datetime
-from core.schema import PipelineContext, PipelineResult
+from core.schema import PipelineContext, PipelineResult, NodeConfig, PipelineSchema
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,9 @@ class BaseNode(ABC):
             
         finally:
             self.end_time = datetime.utcnow()
+
+NodeConfig.model_rebuild()
+PipelineSchema.model_rebuild()
 
 class RouterNode(BaseNode):
     """Base class for router nodes that determine execution paths"""

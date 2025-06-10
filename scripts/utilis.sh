@@ -1,3 +1,4 @@
+# init.sh
 mkdir -p app/{alembic/{versions},api,config,core,database/{models,repositories},pipelines/{anomaly_detection,change_analysis,monitoring},services,tasks,utils}
 mkdir -p {data,docker,playground,requests/jobs,tests/{test_pipelines,test_services,test_utils}}
 touch app/alembic/{env.py,script.py.mako}
@@ -27,3 +28,12 @@ touch tests/test_pipelines/{test_anomaly_detection.py,test_change_analysis.py,te
 touch tests/test_services/{test_alerting.py,test_earth_engine.py,test_processing.py}
 touch tests/test_utils/{test_geospatial_utils.py,test_validators.py}
 touch {README.md,pyrightconfig.json}
+
+
+# install.sh
+pip install "fastapi[standard]" sqlalchemy celery redis pydantic pydantic-settings python-dateutil alembic psycopg2-binary python-dotenv
+
+# detect process and kill it
+lsof -i :8000
+kill -9 12345
+

@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv()
-print("Dbuser", os.getenv("DB_USER"))
 
 class DatabaseConfig(BaseSettings):
     """Database configuration for geospatial data service."""

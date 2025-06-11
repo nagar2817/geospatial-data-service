@@ -36,6 +36,8 @@ def get_celery_config():
         "timezone": "UTC",
         "enable_utc": True,
         "broker_connection_retry_on_startup": True,
+        "broker_connection_retry": True,
+        "broker_connection_max_retries": 10,
         "task_routes": {
             "tasks.job_processor.process_geospatial_job": {"queue": "geospatial"},
             "tasks.periodic_tasks.discover_jobs": {"queue": "scheduler"},
@@ -54,6 +56,9 @@ def get_celery_config():
         "worker_prefetch_multiplier": 1,
         "task_acks_late": True,
         "worker_max_tasks_per_child": 1000,
+        # Add default retry policy
+        "task_default_retry_delay": 60,
+        "task_max_retries": 3,
     }
 
 celery_app = Celery("geospatial_data_service")

@@ -10,9 +10,9 @@ class AsyncJobDefinitionRepository(AsyncBaseRepository[JobDefinition, JobDefinit
     async def get_eligible_jobs(self):
         """Get jobs eligible for execution - simplified for API access."""
         from sqlalchemy import select, and_, or_
-        from datetime import datetime
+        from datetime import datetime, UTC
         
-        current_time = datetime.utcnow()
+        current_time = datetime.now(UTC)
         query = select(JobDefinition).where(
             and_(
                 JobDefinition.enabled == True,

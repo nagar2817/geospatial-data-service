@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Dict, Any, List
 from core.base import BaseNode
 from core.schema import PipelineContext
@@ -32,7 +32,7 @@ class JobValidatorNode(BaseNode):
         context.execution_stats.update({
             "jobs_validated": len(validated_jobs),
             "validation_errors": len(validation_errors),
-            "validation_timestamp": datetime.utcnow().isoformat()
+            "validation_timestamp": datetime.now(UTC).isoformat()
         })
         
         logger.info(f"JobValidator: {len(validated_jobs)} jobs passed validation, {len(validation_errors)} failed")
@@ -113,7 +113,7 @@ class JobValidatorNode(BaseNode):
         
         try:
             last_run = datetime.fromisoformat(last_run_str.replace('Z', '+00:00'))
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
             
             # Get minimum interval from job config or default
             retry_policy = job.get("retry_policy", {})

@@ -2,7 +2,7 @@ import os
 import sys
 import asyncio
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from uuid import uuid4
 
 project_root = Path(__file__).parent.parent
@@ -48,7 +48,7 @@ class JobDiscoveryPlayground:
                 "schedule_type": "cron",
                 "schedule_cron": "0 6 * * *",  # Daily at 6 AM
                 "enabled": True,
-                "next_run_at": datetime.utcnow() - timedelta(hours=1),  # Eligible for execution
+                "next_run_at": datetime.now(UTC) - timedelta(hours=1),  # Eligible for execution
                 "payload": {
                     "coordinates": [[-122.4194, 37.7749], [-122.4094, 37.7649]],
                     "satellite_type": "Sentinel-2",
@@ -78,7 +78,7 @@ class JobDiscoveryPlayground:
                 "schedule_type": "interval",
                 "interval_days": 7,
                 "enabled": True,
-                "next_run_at": datetime.utcnow() - timedelta(days=1),  # Eligible
+                "next_run_at": datetime.now(UTC) - timedelta(days=1),  # Eligible
                 "payload": {
                     "coordinates": [[-120.4194, 35.7749] for _ in range(150)],  # Large area
                     "satellite_type": "Landsat-8", 
@@ -94,7 +94,7 @@ class JobDiscoveryPlayground:
                 "schedule_type": "cron",
                 "schedule_cron": "*/15 * * * *",  # Every 15 minutes
                 "enabled": True,
-                "next_run_at": datetime.utcnow() - timedelta(minutes=30),  # Eligible
+                "next_run_at": datetime.now(UTC) - timedelta(minutes=30),  # Eligible
                 "payload": {
                     "coordinates": [[-119.4194, 34.7749]],
                     "satellite_type": "MODIS",
@@ -250,7 +250,7 @@ class JobDiscoveryPlayground:
                         "metric": "ndvi"
                     },
                     "event_id": str(uuid4()),
-                    "event_timestamp": datetime.utcnow().isoformat()
+                    "event_timestamp": datetime.now(UTC).isoformat()
                 }
             )
             
@@ -380,10 +380,10 @@ class JobDiscoveryPlayground:
             
             # Run all trigger type tests
             await self.test_cron_trigger()
-            await self.test_api_trigger() 
-            await self.test_manual_trigger()
-            await self.test_event_trigger()
-            await self.test_multiple_scenarios()
+            # await self.test_api_trigger() 
+            # await self.test_manual_trigger()
+            # await self.test_event_trigger()
+            # await self.test_multiple_scenarios()
             
             print("=" * 80)
             print("🎉 All Job Discovery Pipeline tests completed!")

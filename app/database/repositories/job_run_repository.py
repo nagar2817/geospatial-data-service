@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -47,7 +47,7 @@ class JobRunRepository(BaseRepository[JobRun, JobRunCreate, JobRunUpdate]):
     
     def get_failed_jobs(self, hours: int = 24) -> List[JobRun]:
         """Get failed jobs within specified hours."""
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
         return (
             self.session.query(JobRun)
             .filter(
@@ -62,7 +62,7 @@ class JobRunRepository(BaseRepository[JobRun, JobRunCreate, JobRunUpdate]):
     
     def get_successful_jobs(self, hours: int = 24) -> List[JobRun]:
         """Get successful jobs within specified hours."""
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
         return (
             self.session.query(JobRun)
             .filter(
@@ -100,7 +100,7 @@ class JobRunRepository(BaseRepository[JobRun, JobRunCreate, JobRunUpdate]):
         job_run = self.get(run_id)
         if job_run:
             job_run.status = status
-            job_run.end_time = datetime.utcnow()
+            job_run.end_time = datetime.now(UTC)
             if output_summary:
                 job_run.output_summary = output_summary
             self.session.commit()
@@ -112,8 +112,8 @@ class JobRunRepository(BaseRepository[JobRun, JobRunCreate, JobRunUpdate]):
         job_run = self.get(run_id)
         if job_run:
             job_run.status = "failed"
-            job_run.end_time = datetime.utcnow()
-            job_run.log_message = {"error": error_message, "timestamp": datetime.utcnow().isoformat()}
+            job_run.end_time = datetime.now(UTC)
+            job_run.log_message = {"error": error_message, "timestamp": datetime.now(UTC).isoformat()}
             self.session.commit()
             return True
         return False
@@ -127,7 +127,7 @@ class JobRunRepository(BaseRepository[JobRun, JobRunCreate, JobRunUpdate]):
             elif "logs" not in job_run.log_message:
                 job_run.log_message["logs"] = []
             
-            log_entry["timestamp"] = datetime.utcnow().isoformat()
+            log_entry["timestamp"] = datetime.now(UTC).isoformat()
             job_run.log_message["logs"].append(log_entry)
             self.session.commit()
             return True
@@ -135,7 +135,7 @@ class JobRunRepository(BaseRepository[JobRun, JobRunCreate, JobRunUpdate]):
     
     def get_execution_stats(self, hours: int = 24) -> Dict[str, Any]:
         """Get execution statistics for the specified time period."""
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
         
         stats = (
             self.session.query(
@@ -177,7 +177,7 @@ class JobRunRepository(BaseRepository[JobRun, JobRunCreate, JobRunUpdate]):
     
     def cleanup_old_runs(self, days: int = 30) -> int:
         """Delete job runs older than specified days. Returns count of deleted records."""
-        cutoff_time = datetime.utcnow() - timedelta(days=days)
+        cutoff_time = datetime.now(UTC) - timedelta(days=days)
         deleted_count = (
             self.session.query(JobRun)
             .filter(JobRun.start_time < cutoff_time)

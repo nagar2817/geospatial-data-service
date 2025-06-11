@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from uuid import UUID
 from config.celery_config import celery_app
 from database import SessionLocal, RepositoryFactory
@@ -48,7 +48,7 @@ def process_geospatial_job(task_payload: dict):
                 log_message={
                     "info": f"Job {job.job_name} completed successfully",
                     "processing_time": "45 seconds",
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(UTC).isoformat()
                 },
                 output_summary=output_summary
             )
@@ -69,7 +69,7 @@ def process_geospatial_job(task_payload: dict):
                     status="failed",
                     log_message={
                         "error": str(e),
-                        "timestamp": datetime.utcnow().isoformat()
+                        "timestamp": datetime.now(UTC).isoformat()
                     }
                 )
                 repo_factory.job_run.update(job_run, update_data)
@@ -175,7 +175,7 @@ def discover_jobs():
                 
                 # Update next run time (simplified - would need proper cron parsing)
                 from datetime import timedelta
-                next_run = datetime.utcnow() + timedelta(days=job.interval_days or 1)
+                next_run = datetime.now(UTC) + timedelta(days=job.interval_days or 1)
                 repo_factory.job_definition.update_next_run(job.job_id, next_run)
             
             return {"discovered_jobs": len(eligible_jobs)}
@@ -190,6 +190,6 @@ def health_check():
     logger.info("Health check task executed")
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "service": "geospatial-celery-worker"
     }

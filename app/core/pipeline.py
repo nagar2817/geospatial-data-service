@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Dict, List, Type, Optional
 from core.base import BaseNode, RouterNode
 from core.schema import PipelineSchema, PipelineContext, PipelineResult, TriggerType
@@ -19,7 +19,7 @@ class Pipeline:
         
     async def run(self, trigger_type: TriggerType, trigger_metadata: Dict = None) -> PipelineResult:
         """Execute the pipeline"""
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         
         # Initialize context
         context = PipelineContext(
@@ -32,7 +32,7 @@ class Pipeline:
             await self._execute_node(self.pipeline_schema.start, context)
             
             # Calculate execution time
-            execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
             
             return PipelineResult(
                 success=len(context.errors) == 0,
@@ -46,7 +46,7 @@ class Pipeline:
             
         except Exception as e:
             logger.error(f"Pipeline execution failed: {str(e)}")
-            execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
             
             return PipelineResult(
                 success=False,

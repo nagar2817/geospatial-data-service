@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Type
 from uuid import uuid4
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from core.schema import PipelineContext, PipelineResult, NodeConfig, PipelineSchema
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class BaseNode(ABC):
     
     async def execute(self, context: PipelineContext) -> PipelineContext:
         """Execute node with timing and error handling"""
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(UTC)
         
         try:
             logger.info(f"Executing node: {self.__class__.__name__}")
@@ -40,7 +40,7 @@ class BaseNode(ABC):
             raise
             
         finally:
-            self.end_time = datetime.utcnow()
+            self.end_time = datetime.now(UTC)
 
 NodeConfig.model_rebuild()
 PipelineSchema.model_rebuild()

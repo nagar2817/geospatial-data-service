@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Dict, Any
 from database import SessionLocal, RepositoryFactory
 from core.base import BaseNode
@@ -67,7 +67,7 @@ class JobScannerNode(BaseNode):
                 
                 context.execution_stats.update({
                     "jobs_scanned": len(context.eligible_jobs),
-                    "scan_timestamp": datetime.utcnow().isoformat()
+                    "scan_timestamp": datetime.now(UTC).isoformat()
                 })
                 
                 logger.info(f"JobScanner found {len(context.eligible_jobs)} eligible jobs")

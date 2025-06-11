@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from core.base import BaseNode
 from core.schema import PipelineContext
 
@@ -15,7 +15,7 @@ class JobStatsNode(BaseNode):
         final_stats = {
             "pipeline_execution": {
                 "trigger_type": context.trigger_type.value,
-                "execution_completed_at": datetime.utcnow().isoformat(),
+                "execution_completed_at": datetime.now(UTC).isoformat(),
                 "total_errors": len(context.errors)
             },
             "job_processing": {

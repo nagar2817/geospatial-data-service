@@ -106,8 +106,8 @@ class JobRouterNode(RouterNode):
             "priority": priority,
             "estimated_duration": estimated_duration,
             "celery_queue": celery_queue,
-            "routing_key": f"{job_type}.{priority}",
-            "retry_config": self._get_retry_config(job)
+            "routing_key": f"{job_type}.{priority}"
+            # "retry_config": self._get_retry_config(job)
         }
     
     def _calculate_priority(self, job: Dict) -> str:
@@ -218,22 +218,25 @@ class JobRouterNode(RouterNode):
         default_retry = job.get("retry_policy", {})
         job_type = job.get("job_type")
         
-        # Job type specific retry configs
+        # Job type specific retry configs - Celery format
         if job_type == "monitoring":
             return {
                 "max_retries": default_retry.get("max_retries", 2),
-                "delay": default_retry.get("delay", 30),
-                "backoff": True
+                "interval_start": 30,  # Initial retry delay in seconds
+                "interval_step": 10,   # Increment between retries
+                "interval_max": 300    # Maximum retry delay
             }
         elif job_type == "anomaly_detection":
             return {
                 "max_retries": default_retry.get("max_retries", 3),
-                "delay": default_retry.get("delay", 60),
-                "backoff": True
+                "interval_start": 60,
+                "interval_step": 30,
+                "interval_max": 600
             }
         else:
             return {
                 "max_retries": default_retry.get("max_retries", 3),
-                "delay": default_retry.get("delay", 60),
-                "backoff": False
+                "interval_start": 60,
+                "interval_step": 0,    # No increment for regular jobs
+                "interval_max": 60
             }

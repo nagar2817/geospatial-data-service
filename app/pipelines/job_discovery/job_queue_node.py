@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Dict
 from uuid import UUID
 from config.celery_config import celery_app
@@ -35,13 +35,13 @@ class JobQueueNode(BaseNode):
                         # Create job run record
                         job_run = self._create_job_run(repo_factory, job, context)
                         
-                        # Queue to Celery
-                        task_result = self._queue_to_celery(job, job_run)
+                        # Queue to Celery with safer approach
+                        task_result = self._queue_to_celery_safe(job, job_run)
                         
                         # Update job with queuing info
                         job["job_run_id"] = str(job_run.id)
                         job["task_id"] = task_result.id
-                        job["queued_at"] = datetime.utcnow().isoformat()
+                        job["queued_at"] = datetime.now(UTC).isoformat()
                         
                         queuing_stats["queuing_details"].append({
                             "job_id": job["job_id"],
@@ -71,7 +71,7 @@ class JobQueueNode(BaseNode):
         
         context.execution_stats.update({
             "queuing_stats": queuing_stats,
-            "queuing_timestamp": datetime.utcnow().isoformat()
+            "queuing_timestamp": datetime.now(UTC).isoformat()
         })
         
         logger.info(f"JobQueue: Queued {queuing_stats['total_queued']} jobs, {queuing_stats['failed_to_queue']} failed")
@@ -89,8 +89,8 @@ class JobQueueNode(BaseNode):
         
         return repo_factory.job_run.create(job_run_data)
     
-    def _queue_to_celery(self, job: Dict, job_run):
-        """Queue job to Celery"""
+    def _queue_to_celery_safe(self, job: Dict, job_run):
+        """Queue job to Celery with safe error handling"""
         
         routing_metadata = job.get("routing_metadata", {})
         celery_queue = routing_metadata.get("celery_queue", "geospatial")
@@ -99,15 +99,20 @@ class JobQueueNode(BaseNode):
         task_payload = {
             "job_id": job["job_id"],
             "run_id": str(job_run.id),
-            "override_payload": None  # No override for discovered jobs
+            "override_payload": None
         }
         
-        # Send task to Celery
-        return celery_app.send_task(
-            "tasks.job_processor.process_geospatial_job",
-            args=[task_payload],
-            queue=celery_queue,
-            routing_key=routing_metadata.get("routing_key"),
-            retry=True,
-            retry_policy=routing_metadata.get("retry_config", {})
-        )
+        # Send task with minimal parameters to avoid compatibility issues
+        try:
+            return celery_app.send_task(
+                "tasks.job_processor.process_geospatial_job",
+                args=[task_payload],
+                queue=celery_queue
+            )
+        except Exception as e:
+            logger.error(f"Failed to send task to queue {celery_queue}: {str(e)}")
+            # Fallback: try without queue specification
+            return celery_app.send_task(
+                "tasks.job_processor.process_geospatial_job",
+                args=[task_payload]
+            )

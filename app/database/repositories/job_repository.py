@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -41,7 +41,7 @@ class JobDefinitionRepository(BaseRepository[JobDefinition, JobDefinitionCreate,
     def get_eligible_jobs(self, current_time: Optional[datetime] = None) -> List[JobDefinition]:
         """Get jobs eligible for execution based on schedule."""
         if current_time is None:
-            current_time = datetime.utcnow()
+            current_time = datetime.now(UTC)
         
         return (
             self.session.query(JobDefinition)
@@ -84,7 +84,7 @@ class JobDefinitionRepository(BaseRepository[JobDefinition, JobDefinitionCreate,
     def update_last_run(self, job_id: UUID, run_time: Optional[datetime] = None) -> bool:
         """Update last run timestamp for a job."""
         if run_time is None:
-            run_time = datetime.utcnow()
+            run_time = datetime.now(UTC)
         
         job = self.get(job_id)
         if job:

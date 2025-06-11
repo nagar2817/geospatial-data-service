@@ -48,6 +48,10 @@ echo -e "\n${YELLOW}⚙️  Stopping Celery workers...${NC}"
 kill_processes "celery.*worker"
 kill_processes "celery"
 
+# Stop Celery WebUI Interface
+echo -e "\n${YELLOW}🌐 Stopping Celery WebUI Interface...${NC}"
+kill_processes "celery.*flower"
+
 # Stop Celery beat (scheduler)
 echo -e "\n${YELLOW}⏰ Stopping Celery beat...${NC}"
 kill_processes "celery.*beat"

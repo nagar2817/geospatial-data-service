@@ -11,7 +11,7 @@ sys.path.append(str(project_root / "app"))
 # Set database host to localhost since we're connecting to it outside of docker
 os.environ["DB_HOST"] = "localhost"
 os.environ["DB_PORT"] = "5432"
-os.environ["DB_NAME"] = "geodata"
+os.environ["DB_NAME"] = "postgres"
 os.environ["DB_USER"] = "postgres"
 os.environ["DB_PASSWORD"] = "postgres"
 

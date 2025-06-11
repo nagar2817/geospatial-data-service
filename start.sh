@@ -106,6 +106,10 @@ run_in_new_tab "source env/bin/activate && cd app && celery -A config.celery_con
 echo -e "${YELLOW}⏳ Waiting for Celery worker to start...${NC}"
 sleep 5
 
+# Start Flower monitoring in new tab
+echo -e "${YELLOW}🌼 Starting Flower (Celery Monitoring)...${NC}"
+run_in_new_tab "source env/bin/activate && cd app && celery -A config.celery_config flower --port=5555" "Celery Flower"
+
 echo ""
 echo -e "${GREEN}🎉 Test setup complete!${NC}"
 echo ""

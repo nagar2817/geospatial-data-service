@@ -56,65 +56,65 @@ class JobDiscoveryPlayground:
                     "field_id": "field_a_001"
                 },
                 "target_function": "process_ndvi_monitoring"
-            },
-            {
-                "job_name": "Anomaly Detection - Critical Farm",
-                "job_type": "anomaly_detection",
-                "schedule_type": "event_triggered",
-                "enabled": True,
-                "payload": {
-                    "coordinates": [[-121.5194, 36.7749]],
-                    "satellite_type": "Sentinel-2",
-                    "metrics": ["ndvi", "ndwi"],
-                    "threshold_config": {"ndvi_threshold": 0.3},
-                    "severity": "high",
-                    "farm_id": "farm_critical_001"
-                },
-                "target_function": "process_anomaly_detection"
-            },
-            {
-                "job_name": "Change Analysis - Large Area",
-                "job_type": "change_analysis",
-                "schedule_type": "interval",
-                "interval_days": 7,
-                "enabled": True,
-                "next_run_at": datetime.now(UTC) - timedelta(days=1),  # Eligible
-                "payload": {
-                    "coordinates": [[-120.4194, 35.7749] for _ in range(150)],  # Large area
-                    "satellite_type": "Landsat-8", 
-                    "date_range": {"start": "2023-01-01", "end": "2024-12-31"},
-                    "analysis_type": "vegetation_change",
-                    "batch_processing": True
-                },
-                "target_function": "process_change_analysis"
-            },
-            {
-                "job_name": "Health Monitoring",
-                "job_type": "monitoring",
-                "schedule_type": "cron",
-                "schedule_cron": "*/15 * * * *",  # Every 15 minutes
-                "enabled": True,
-                "next_run_at": datetime.now(UTC) - timedelta(minutes=30),  # Eligible
-                "payload": {
-                    "coordinates": [[-119.4194, 34.7749]],
-                    "satellite_type": "MODIS",
-                    "validation_rules": ["data_completeness", "cloud_coverage"],
-                    "real_time": True
-                },
-                "target_function": "process_health_monitoring"
-            },
-            {
-                "job_name": "Disabled Test Job",
-                "job_type": "metric_calc",
-                "schedule_type": "cron",
-                "enabled": False,  # This should not be discovered
-                "payload": {
-                    "coordinates": [[-118.4194, 33.7749]],
-                    "satellite_type": "Sentinel-2",
-                    "metrics": ["ndvi"]
-                },
-                "target_function": "process_disabled_job"
             }
+            # {
+            #     "job_name": "Anomaly Detection - Critical Farm",
+            #     "job_type": "anomaly_detection",
+            #     "schedule_type": "event_triggered",
+            #     "enabled": True,
+            #     "payload": {
+            #         "coordinates": [[-121.5194, 36.7749]],
+            #         "satellite_type": "Sentinel-2",
+            #         "metrics": ["ndvi", "ndwi"],
+            #         "threshold_config": {"ndvi_threshold": 0.3},
+            #         "severity": "high",
+            #         "farm_id": "farm_critical_001"
+            #     },
+            #     "target_function": "process_anomaly_detection"
+            # },
+            # {
+            #     "job_name": "Change Analysis - Large Area",
+            #     "job_type": "change_analysis",
+            #     "schedule_type": "interval",
+            #     "interval_days": 7,
+            #     "enabled": True,
+            #     "next_run_at": datetime.now(UTC) - timedelta(days=1),  # Eligible
+            #     "payload": {
+            #         "coordinates": [[-120.4194, 35.7749] for _ in range(150)],  # Large area
+            #         "satellite_type": "Landsat-8", 
+            #         "date_range": {"start": "2023-01-01", "end": "2024-12-31"},
+            #         "analysis_type": "vegetation_change",
+            #         "batch_processing": True
+            #     },
+            #     "target_function": "process_change_analysis"
+            # },
+            # {
+            #     "job_name": "Health Monitoring",
+            #     "job_type": "monitoring",
+            #     "schedule_type": "cron",
+            #     "schedule_cron": "*/15 * * * *",  # Every 15 minutes
+            #     "enabled": True,
+            #     "next_run_at": datetime.now(UTC) - timedelta(minutes=30),  # Eligible
+            #     "payload": {
+            #         "coordinates": [[-119.4194, 34.7749]],
+            #         "satellite_type": "MODIS",
+            #         "validation_rules": ["data_completeness", "cloud_coverage"],
+            #         "real_time": True
+            #     },
+            #     "target_function": "process_health_monitoring"
+            # },
+            # {
+            #     "job_name": "Disabled Test Job",
+            #     "job_type": "metric_calc",
+            #     "schedule_type": "cron",
+            #     "enabled": False,  # This should not be discovered
+            #     "payload": {
+            #         "coordinates": [[-118.4194, 33.7749]],
+            #         "satellite_type": "Sentinel-2",
+            #         "metrics": ["ndvi"]
+            #     },
+            #     "target_function": "process_disabled_job"
+            # }
         ]
         
         with SessionLocal() as session:

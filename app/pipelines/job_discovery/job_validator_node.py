@@ -112,7 +112,7 @@ class JobValidatorNode(BaseNode):
             return True  # No previous run, OK to execute
         
         try:
-            last_run = datetime.fromisoformat(last_run_str.replace('Z', '+00:00'))
+            last_run = datetime.fromisoformat(last_run_str.replace('Z', '+00:00')).astimezone(UTC)
             now = datetime.now(UTC)
             
             # Get minimum interval from job config or default

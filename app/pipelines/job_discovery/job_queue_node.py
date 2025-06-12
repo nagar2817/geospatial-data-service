@@ -123,7 +123,7 @@ class JobQueueNode(BaseNode):
                 "tasks.job_processor.process_geospatial_job",
                 args=[task_payload],
                 queue=celery_queue,
-                routing_key=routing_key,
+                # routing_key=routing_key,
                 exchange=celery_queue,  # Use queue name as exchange
                 retry=True
             )

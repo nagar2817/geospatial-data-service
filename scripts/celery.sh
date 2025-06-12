@@ -1,0 +1,1 @@
+celery -A config.celery_config worker -l info -Q celery,geospatial,monitoring,scheduler -E

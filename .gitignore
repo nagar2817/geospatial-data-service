@@ -7,3 +7,7 @@ env/
 # Exclude `__pycache__` directories present in any folder
 __pycache__/
 *.pyc
+
+# Exclude logs and temporary files
+*.log
+*.tmp

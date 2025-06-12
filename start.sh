@@ -22,6 +22,12 @@ handle_error() {
 # Set error handler
 trap 'handle_error $LINENO' ERR
 
+# Create logs directory if it doesn't exist
+if [ ! -d "logs" ]; then
+    echo -e "${YELLOW}📁 Creating logs directory...${NC}"
+    mkdir -p logs
+fi
+
 # Function to run command in new terminal tab (cross-platform)
 run_in_new_tab() {
     local cmd="$1"
@@ -73,8 +79,6 @@ if [ ! -d "app" ]; then
     exit 1
 fi
 
-
-
 # Start FastAPI server in new tab
 echo -e "${YELLOW}🖥️  Starting FastAPI server...${NC}"
 run_in_new_tab "source env/bin/activate && cd app && uvicorn main:app --host 0.0.0.0 --port 8000 --reload" "FastAPI Server"
@@ -98,9 +102,9 @@ for i in {1..10}; do
     fi
 done
 
-# Start Celery worker in new tab
+# Start Celery worker in new tab and redirect output to log file
 echo -e "${YELLOW}⚙️  Starting Celery worker...${NC}"
-run_in_new_tab "source env/bin/activate && cd app && celery -A config.celery_config worker --loglevel=info --concurrency=2" "Celery Worker"
+run_in_new_tab "source env/bin/activate && cd app && celery -A config.celery_config worker --loglevel=info --concurrency=2 -E -Q celery,geospatial,monitoring,scheduler >> ../logs/celery.log 2>&1" "Celery Worker"
 
 # Wait for worker to start
 echo -e "${YELLOW}⏳ Waiting for Celery worker to start...${NC}"
@@ -117,9 +121,11 @@ echo "Services running:"
 echo "  📡 FastAPI Server: http://localhost:8000"
 echo "  📚 API Documentation: http://localhost:8000/docs"
 echo "  🔧 API Endpoints: http://localhost:8000/api/v1"
+echo "  🌼 Celery Flower: http://localhost:5555"
 echo ""
 echo "Test endpoints:"
 echo "  🏥 Health: curl http://localhost:8000/api/v1/health"
 echo "  📋 Jobs: curl http://localhost:8000/api/v1/jobs/"
 echo ""
-echo -e "${YELLOW}💡 Check the new terminal tabs for server and worker logs${NC}"
+echo -e "${YELLOW}💡 Check the new terminal tabs for server logs${NC}"
+echo -e "${YELLOW}💡 Celery worker logs are being saved to logs/celery.log${NC}"

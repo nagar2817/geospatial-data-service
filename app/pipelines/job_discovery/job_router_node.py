@@ -98,7 +98,7 @@ class JobRouterNode(RouterNode):
         # Estimate processing duration
         estimated_duration = self._estimate_duration(job)
         
-        # Determine Celery queue and routing key
+        # Determine Celery queue
         celery_queue = self._get_celery_queue(job_type)
         
         return {
@@ -106,8 +106,7 @@ class JobRouterNode(RouterNode):
             "priority": priority,
             "estimated_duration": estimated_duration,
             "celery_queue": celery_queue,
-            "routing_key": f"{job_type}.{priority}"
-            # "retry_config": self._get_retry_config(job)
+            "retry_config": self._get_retry_config(job)
         }
     
     def _calculate_priority(self, job: Dict) -> str:

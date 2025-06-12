@@ -37,9 +37,3 @@ def execute_job_discovery_pipeline(trigger_metadata: dict = None):
             "jobs_processed": 0,
             "jobs_queued": 0
         }
-
-# Update existing periodic task to use pipeline
-@celery_app.task(name="tasks.periodic_tasks.discover_jobs_pipeline")
-def discover_jobs_pipeline():
-    """Periodic task using job discovery pipeline"""
-    return execute_job_discovery_pipeline.delay().get()

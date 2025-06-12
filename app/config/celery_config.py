@@ -7,29 +7,30 @@ settings = get_settings()
 
 def get_rabbitmq_url():
     """Get RabbitMQ URL for Amazon MQ or local development."""
-    if os.getenv("ENVIRONMENT") == "production":
-        # Amazon MQ RabbitMQ
-        user = os.getenv("RABBITMQ_USER", "admin")
-        password = os.getenv("RABBITMQ_PASSWORD")
-        host = os.getenv("RABBITMQ_HOST", "localhost")
-        port = os.getenv("RABBITMQ_PORT", "5672")
-        vhost = os.getenv("RABBITMQ_VHOST", "/")
-        return f"pyamqp://{user}:{password}@{host}:{port}/{vhost}"
-    else:
-        redis_host = os.getenv("REDIS_HOST", "localhost")
-        redis_port = os.getenv("REDIS_PORT", 6379)
-        redis_db = os.getenv("REDIS_DB", "0")
-        
-        return f"redis://{redis_host}:{redis_port}/{redis_db}"
+    user = os.getenv("RABBITMQ_USER", "guest")
+    password = os.getenv("RABBITMQ_PASSWORD", "guest")
+    host = os.getenv("RABBITMQ_HOST", "localhost")
+    port = os.getenv("RABBITMQ_PORT", "5672")
+    vhost = os.getenv("RABBITMQ_VHOST", "/")
+    return f"pyamqp://{user}:{password}@{host}:{port}/{vhost}"
+
+def get_redis_url():
+    """Get Redis URL for caching and result backend."""
+    redis_host = os.getenv("REDIS_HOST", "localhost")
+    redis_port = os.getenv("REDIS_PORT", 6379)
+    redis_db = os.getenv("REDIS_DB", "0")
+    
+    return f"redis://{redis_host}:{redis_port}/{redis_db}"
 
 @lru_cache
 def get_celery_config():
     """Get Celery configuration for geospatial processing."""
     broker_url = get_rabbitmq_url()
+    result_backend = get_redis_url()
     
     return {
         "broker_url": broker_url,
-        "result_backend": broker_url,
+        "result_backend": result_backend,
         "task_serializer": "json",
         "accept_content": ["json"],
         "result_serializer": "json",
@@ -87,3 +88,9 @@ celery_app.autodiscover_tasks([
     "tasks.pipeline_tasks",
     "tasks.monitoring"
 ], force=True)
+
+
+# *** --- Extra config
+# task_annotations = {
+#     'tasks.monitoring.health_check': {'rate_limit': '10/m'}
+# }

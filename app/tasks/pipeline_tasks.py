@@ -1,13 +1,13 @@
 import logging
 from config.celery_config import celery_app
 from core.schema import TriggerType
-from pipelines.registry import PipelineRegistry
 
 logger = logging.getLogger(__name__)
 
 @celery_app.task(name="tasks.pipeline_tasks.execute_job_discovery")
 def execute_job_discovery_pipeline(trigger_metadata: dict = None):
     """Celery task to execute job discovery pipeline"""
+    from pipelines.registry import PipelineRegistry
     
     try:
         pipeline = PipelineRegistry.get_pipeline(TriggerType.CRON, "job_discovery")

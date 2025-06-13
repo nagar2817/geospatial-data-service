@@ -15,7 +15,6 @@ class JobRouterNode(RouterNode):
         context.routed_jobs = {
             "high_priority": [],
             "normal_priority": [],
-            "batch_processing": [],
             "monitoring": [],
             "failed_routing": []
         }
@@ -90,8 +89,6 @@ class JobRouterNode(RouterNode):
             queue = "high_priority"
         elif job_type == "monitoring" or schedule_type == "cron":
             queue = "monitoring"
-        elif self._is_batch_job(job):
-            queue = "batch_processing"
         else:
             queue = "normal_priority"
         
@@ -139,32 +136,6 @@ class JobRouterNode(RouterNode):
         
         return "normal"
     
-    def _is_batch_job(self, job: Dict) -> bool:
-        """Determine if job should be processed in batch queue"""
-        
-        payload = job.get("payload", {})
-        
-        # Large area analysis
-        coordinates = payload.get("coordinates", [])
-        if len(coordinates) > 100:  # Large polygon
-            return True
-        
-        # Historical analysis over large time periods
-        date_range = payload.get("date_range", {})
-        if date_range:
-            # Check if analysis spans more than 1 year
-            start = date_range.get("start")
-            end = date_range.get("end")
-            if start and end:
-                # Simplified check - in production, parse dates properly
-                return True
-        
-        # Batch processing flag
-        if payload.get("batch_processing", False):
-            return True
-        
-        return False
-    
     def _estimate_duration(self, job: Dict) -> int:
         """Estimate job processing duration in minutes"""
         
@@ -205,7 +176,7 @@ class JobRouterNode(RouterNode):
             "anomaly_detection": "geospatial",
             "change_analysis": "geospatial", 
             "monitoring": "monitoring",
-            "fetch_data": "data_processing",
+            "fetch_data": "geospatial",
             "metric_calc": "geospatial"
         }
         

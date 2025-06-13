@@ -53,8 +53,7 @@ class JobQueueNode(BaseNode):
                             "job_run_id": str(job_run.id),
                             "task_id": task_result.id,
                             "queue": queue_name,
-                            "celery_queue": actual_queue,
-                            "routing_key": job["routing_metadata"].get("routing_key")
+                            "celery_queue": actual_queue
                         })
                         
                         # Track queue distribution
@@ -105,7 +104,6 @@ class JobQueueNode(BaseNode):
         
         routing_metadata = job.get("routing_metadata", {})
         celery_queue = routing_metadata.get("celery_queue", "geospatial")
-        routing_key = routing_metadata.get("routing_key", f"geospatial.process")
         
         # Prepare task payload
         task_payload = {
@@ -114,16 +112,14 @@ class JobQueueNode(BaseNode):
             "override_payload": None
         }
         
-        logger.info(f"Sending task to queue: {celery_queue}, routing_key: {routing_key}")
+        logger.info(f"Sending task to queue: {celery_queue}")
         
-        # FIXED: Send task with explicit queue and routing
         try:
             # Method 1: Use send_task with explicit routing
             task_result = celery_app.send_task(
                 "tasks.job_processor.process_geospatial_job",
                 args=[task_payload],
                 queue=celery_queue,
-                # routing_key=routing_key,
                 exchange=celery_queue,  # Use queue name as exchange
                 retry=True
             )
@@ -140,7 +136,6 @@ class JobQueueNode(BaseNode):
                 task_result = process_geospatial_job.apply_async(
                     args=[task_payload],
                     queue=celery_queue,
-                    routing_key=routing_key,
                     retry=True
                 )
                 
